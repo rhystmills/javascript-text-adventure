@@ -11,10 +11,14 @@ body{
   min-height:100%;
   width:100%;
   float:left;
+  position: relative;
+  font-family: monospace;
+  font-smooth: never;
+  -webkit-font-smoothing : none;
+  font-size: 14pt;
 }
 p{
   margin-left: 1em;
-  font-family: Arial;
 }
 .description{
   margin-top:1em;
@@ -22,8 +26,36 @@ p{
 .hiddenButton{
   border:0;
   padding:0;
-  font-size:0
+  font-size:0px;
+  height: 0px;
+  width: 0px;
+  display: inline;
 }
-.form{
+
+/* Form CSS */
+/* .form{
   margin-left:5px;
+  width: 99%;
+} */
+#commandForm{
+  position:absolute;
+  bottom:5px;
+  left:5px;
+  width: 99%;
+  max-height: 30px;
+}
+#commandBox{
+  width: 98%;
+}
+input[type="text"]{
+  font-family: monospace;
+  font-smooth: never;
+  -webkit-font-smoothing : none;
+  font-size: 14pt;
+  bottom:0px;
+  width: 98%;
+  border-style:none;
+}
+textarea:focus, input:focus{
+    outline: none;
 }

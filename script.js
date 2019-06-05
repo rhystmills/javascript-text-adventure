@@ -266,48 +266,10 @@ function removeTemporaryPara() {
 }
 
 //Show error message if chosen route is not available
-// var running=false;
-/*var change1=true;
-var change2=false;
-var change3=false;
-var change4=false;
-var change5=false;
-var change6=false;
-var change7=false;
-var change8=false;*/
+
 var i = -1;
 function routeBlocked(){
-  //Establish variables and errorColor function
-  // var fadeArray=["#db1200","#bc0f00","#9e0c00","#7c0900","#600700","#3f0500","#1e0200","#000000"];
   var errorText=document.getElementById("errorMessage");
-  // running=false;
-  // var i=0;
-  // var howManyTimes=8;
-  //
-  // console.log("Step 1")
-  /* Handles the color fade */
-  // function errorColor() {errorLoop:{
-    /* if (running===false) {
-       return;
-    } */
-    /*console.log("Step 2");
-    errorText.style.color=fadeArray[i];
-    i++;
-
-    if((i<howManyTimes) && (running===true)){
-      setTimeout(errorColor,500);
-      console.log("Step 3, part"+[i]);
-    }
-  }}
-  change1=true;
-  change2=false;
-  change3=false;
-  change4=false;
-  change5=false;
-  change6=false;
-  change7=false;
-  change8=false;*/
-
   var colorArray=["#db1200","#bc0f00","#9e0c00","#7c0900","#600700","#3f0500","#1e0200","#000000"];
   i=-1;
   function errorColor(runCheck){
