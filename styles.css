@@ -1,0 +1,29 @@
+html{
+  margin:0px;
+  padding:0px;
+  width:100%;
+  height:100%;
+  overflow:auto;
+}
+body{
+  margin:0px;
+  padding:0px;
+  min-height:100%;
+  width:100%;
+  float:left;
+}
+p{
+  margin-left: 1em;
+  font-family: Arial;
+}
+.description{
+  margin-top:1em;
+}
+.hiddenButton{
+  border:0;
+  padding:0;
+  font-size:0
+}
+.form{
+  margin-left:5px;
+}
