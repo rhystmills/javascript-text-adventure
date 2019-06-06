@@ -36,7 +36,7 @@ function createPara(textContent){
     var textnode = document.createTextNode(textContent);     // Create a text node
     node.appendChild(textnode);                              // Append the text to <p>
     node.setAttribute('class', 'temporaryPara');
-    document.getElementById("lowerMarker").appendChild(node);// Append <p> to <p> with id="loweMarker"
+    document.getElementById("lowerMarker").appendChild(node);// Append <p> to <p> with id="lowerMarker"
 }
 /*------ CONSOLE CONTROLS-----*/
 
@@ -187,7 +187,24 @@ function goWest(){
   }
 }
 /* ----- INVENTORY ----- */
+
 var blueKey=false;
+
+function Item(name, inInventory, location){
+  this.name=name;
+  this.inInventory=inInventory;
+  this.location=location;
+}
+
+var redKey = new Item("redKey", false, "1,0");
+
+function addItems(){
+  if (longLat===redKey.location){
+    createPara("There is a red key on the floor.");
+  }
+  console.log(redKey.name + redKey.inInventory + redKey.location);
+}
+
 
 /* ----- ROOM AND DESCRIPTION CHANGERS ----- */
 
@@ -240,6 +257,7 @@ function refreshDesc() {
     default:
     roomDesc="There is nothing here.";
   }
+  addItems();
   // document.getElementById("latitudeText").innerHTML=latitude;
   // document.getElementById("longitudeText").innerHTML=longitude;
   // document.getElementById("longLatText").innerHTML=longLat;
@@ -290,111 +308,12 @@ function routeBlocked(){
     }
   }
 
-
-/*
-  function errorColor(){
-    function colorChange1(){
-      if ((change1===true) && (change2===false) && (change3===false) && (change4===false) & (change5===false) & (change6===false) & (change7===false) & (change8===false)){
-        errorText.style.color="#db1200";
-        console.log("Colour Change 1")
-        change2=true;
-        setTimeout(colorChange2,200);
-      }
-    }
-    function colorChange2(){
-      if ((change1===true) && (change2===true) && (change3===false) && (change4===false) & (change5===false) & (change6===false) & (change7===false) & (change8===false)){
-        errorText.style.color="#bc0f00";
-        console.log("Colour Change 2")
-        change3=true;
-        setTimeout(colorChange3,200);
-      }
-    }
-    function colorChange3(){
-      if ((change1===true) && (change2===true) && (change3===true) && (change4===false) & (change5===false) & (change6===false) & (change7===false) & (change8===false)){
-        errorText.style.color="#9e0c00";
-        console.log("Colour Change 3")
-        change4=true
-        setTimeout(colorChange4,200)
-      }
-    }
-    function colorChange4(){
-      if ((change1===true) && (change2===true) && (change3===true) && (change4===true) & (change5===false) & (change6===false) & (change7===false) & (change8===false)){
-        errorText.style.color="#7c0900";
-        console.log("Colour Change 4")
-        change5=true;
-        setTimeout(colorChange5,200)
-      }
-    }
-    function colorChange5(){
-      if ((change1===true) && (change2===true) && (change3===true) && (change4===true) & (change5===true) & (change6===false) & (change7===false) & (change8===false)){
-        errorText.style.color="#600700";
-        console.log("Colour Change 5")
-        change6=true;
-        setTimeout(colorChange6,200)
-      }
-    }
-    function colorChange6(){
-      if ((change1===true) && (change2===true) && (change3===true) && (change4===true) & (change5===true) & (change6===true) & (change7===false) & (change8===false)){
-        errorText.style.color="#3f0500";
-        console.log("Colour Change 6")
-        change7=true;
-        setTimeout(colorChange7,200)
-      }
-    }
-    function colorChange7(){
-      if ((change1===true) && (change2===true) && (change3===true) && (change4===true) & (change5===true) & (change6===true) & (change7===true) & (change8===false)){
-        errorText.style.color="#1e0200";
-        console.log("Colour Change 7")
-        change8=true;
-        setTimeout(colorChange8,200)
-      }
-    }
-    function colorChange8(){
-      if ((change1===true) && (change2===true) && (change3===true) && (change4===true) & (change5===true) & (change6===true) & (change7===true) & (change8===true)){
-        errorText.style.color="#000000";
-        console.log("Colour Change 8")
-        change1=true;
-        change2=false;
-        change3=false;
-        change4=false;
-        change5=false;
-        change6=false;
-        change7=false;
-        change8=false;
-      }
-    }
-    colorChange1();
-  }
-  */
   //Updates the error message in the html
   errorText.innerHTML=errorMessage;
   errorColor(i);
   console.log("Step 4");
   // }
 }
-
-
-/*
-var running=false;
-function routeBlocked() {
-  var running=false;
-  var errorText = document.getElementById("errorMessage");
-  errorText.innerHTML=errorMessage;
-  var fadeArray=["#db1200","#bc0f00","#9e0c00","#7c0900","#600700","#3f0500","#1e0200","#000000"];
-  var i=0, howManyTimes=8;
-  function errorFade() {
-    errorText.style.color=fadeArray[i];
-    i++;
-    console.log(fadeArray[i]);
-    if((i < howManyTimes) && (running===true)) {
-      setTimeout( errorFade, 200 );
-    }
-  }
-  if (running === false) errorFade();
-  running=true;
-  // midLoop=false;
-}
-*/
 
 //Remove error message if true route is possible
 function routeOpen() {
