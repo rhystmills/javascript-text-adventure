@@ -18,6 +18,7 @@ var doorStatus=false;
 window.onload = function() {
   resetDirections();
   refreshDesc();
+  addItems();
   //document.getElementById("latitudeText").innerHTML=latitude;
   //document.getElementById("longitudeText").innerHTML=longitude;
   //document.getElementById("longLatText").innerHTML=longLat;
@@ -49,14 +50,199 @@ function commandInit(){
 }
 window.addEventListener("load", commandInit);
 
+/*------  COMMAND PARSER  -----*/
 
-//Run code
+// Parsed Command Handlers //
+
+// Pickup Handler
+function pickUpHandler(parsedNoun){
+  console.log("Pick up handler active.")
+  var n = 0;
+  function pickUpLoop(){
+    if (parsedNoun===objectArray[n].alias){
+      console.log("Found object specified - " + objectArray[n].alias + ", " + objectArray[n].specifier);
+      if (longLat===objectArray[n].location){
+        objectArray[n].inInventory=true;
+        refreshDesc();
+        createPara("You pick up the "+objectArray[n].name);
+      }
+      else if (longLat!=objectArray[n].location){
+        createPara("There is no "+objectArray[n].name + " here.");
+      }
+    }
+    else if (n<objectArray.length){
+      n++;
+      pickUpLoop();
+    }
+    else if (n=objectArray.length){
+      console.log("Noun not found - "+ parsedNoun);
+    }
+  }
+  pickUpLoop();
+}
+
+//Drop Handler
+
+function dropHandler(parsedNoun){
+  console.log("Drop handler active.")
+  var n = 0;
+  function dropLoop(){
+    if (parsedNoun===objectArray[n].alias){
+      console.log("Found object specified - " + objectArray[n].alias + ", " + objectArray[n].specifier);
+      if (longLat===objectArray[n].location&&objectArray[n].inInventory===true){
+        objectArray[n].inInventory=false;
+        createPara("You drop the "+objectArray[n].name);
+      }
+      else if (longLat===objectArray[n].location&&objectArray[n].inInventory===false){
+        createPara("You are not carrying the "+objectArray[n].name);
+      }
+    }
+    else if (n<objectArray.length){
+      n++;
+      dropLoop();
+    }
+    else if (n=objectArray.length){
+      console.log("Not in inventory - "+ parsedNoun);
+    }
+  }
+  dropLoop();
+}
+
+//Initiate verb variables
+var regexPickUp = /.*((PICK UP)|(TAKE)|(PICKUP)).*/;
+var regexDrop = /.*((DROP)|(PUT DOWN))/;
+var parsedVerb = null;
+
+function testForVerb(input){
+  //Clear parsedVerb variable
+  parsedVerb=null;
+  //Initiate count of the verbs
+  var verbCount=0;
+
+  // ----- TEST FOR VERBS ----- //
+
+  //Test for PICKUP command
+  if (regexPickUp.test(input)===true){
+    console.log("Pick up command listed for input of " + input);
+    parsedVerb="PICKUP";
+    verbCount++;
+  }
+  //Test for DROP command
+  if (regexDrop.test(input)===true){
+    console.log("Drop command listed for input of " + input);
+    parsedVerb="DROP";
+    verbCount++;
+  }
+
+  // ----- Do things based on verb results -----//
+
+  //Return the parsedVerb if only one verb has been counted.
+  if (verbCount===1){
+    return parsedVerb;
+  }
+  //Prompt the user if multiple verbs have been encountered.
+  else if (verbCount>1){
+    parsedVerb=null;
+    createPara("That's a lot of verbs.")
+  }
+  //Console log if no verb is found.
+  else if (verbCount===0){
+    console.log("No verb found.")
+  }
+}
+
+// ----- End Verb Parser ----- //
+
+// ----- TEST FOR NOUNS  ----- //
+
+//Initiate noun variables
+var regexKey = /.*(KEY).*/;
+var regexBook = /.*(BOOK).*/;
+var regexGnome = /.*(GNOME).*/;
+var parsedNoun = null;
+
+function testForNoun(input){
+  parsedNoun=null;
+  //Clear parsedNoun variable
+  parsedNoun=null;
+  //Initiate count of the nound
+  var nounCount=0;
+  // ----- TEST FOR NOUNS ----- //
+
+  //Test for KEY noun
+  if (regexKey.test(input)===true){
+    console.log("Key found with name " + input);
+    parsedNoun="KEY";
+    nounCount++;
+  }
+  //Test for BOOK noun
+  if (regexBook.test(input)===true){
+    console.log("Book found with name " + input);
+    parsedNoun="BOOK";
+    nounCount++;
+  }
+  //Test for GNOME
+  if (regexGnome.test(input)===true){
+    console.log("Gnome found with name " + input);
+    parsedNoun="GNOME";
+    nounCount++;
+  }
+
+  // ----- Do things based on verb results -----//
+
+  //Return the parsedVerb if only one verb has been counted.
+  if (nounCount===1){
+    return parsedNoun;
+  }
+  //Prompt the user if multiple nouns have been encountered.
+  else if (nounCount>1){
+    parsedNoun=null;
+    createPara("That's a lot of nouns.")
+  }
+  //Console log if no noun is found
+  else if (nounCount===0){
+    console.log("No noun found.")
+  }
+}
+
+// ----- End Noun Parser ----- //
+
+// ----- COMMAND HANDLER ----- //
 
 function submitForm(event){
+  refreshDesc();
   // command = shortcut for capitalised user input
   var command = commandForm["commandBox"].value.toUpperCase();
-  // log to console for debugging
+  // Search string for accepted verbs and nouns
   console.log('Form submitted. Value:' + commandForm["commandBox"].value);
+  testForVerb(command);
+  testForNoun(command);
+
+  console.log("Parsed verb passed to submitForm with value of " + parsedVerb);
+  if (parsedVerb==null){
+    console.log("Parsed verb not available - value is " + parsedVerb)
+  }
+
+  console.log("Parsed noun passed to submitForm with value of " + parsedNoun);
+  if (parsedNoun==null){
+    console.log("Parsed noun not available - value is " + parsedNoun)
+  }
+  //combine verb and noun
+  switch (parsedVerb) {
+    case "PICKUP":
+      if (parsedNoun===null) {
+        createPara("You haven't told me what to pick up");
+      }
+      else {
+        pickUpHandler(parsedNoun);
+      }
+    break;
+    case "DROP":
+      dropHandler(parsedNoun);
+    break;
+  }
+
+
   // Match to directions
   switch (command) {
 
@@ -85,30 +271,31 @@ function submitForm(event){
     break;
 
     //Pick up handler
-    case "PICK UP KEY":
-    case "PICK UP BLUE KEY":
-      if (blueKey===false) {
-        console.log("key input");
-        if (longLat==='0,-1'){
-          blueKey=true;
-          console.log("key pickup");
-          refreshDesc();
-          createPara("You pick up the key.");
-          //You pick up the Blue Key
-        }
-        else {
-          console.log(longLat);
-          console.log(longitude);
-          console.log(latitude);
-          console.log("wrong longLat");
-          createPara("There is no key here.");
-          //There is no key here.
-        }
-      }
-      else {
-        //You already have the blue key.
-      }
-    break;
+    // case "PICK UP KEY":
+    // case "PICK UP BLUE KEY":
+    //   if (blueKey===false) {
+    //     console.log("key input");
+    //     if (longLat==='0,-1'){
+    //       blueKey=true;
+    //       console.log("key pickup");
+    //       refreshDesc();
+    //       createPara("You pick up the key.");
+    //       //You pick up the Blue Key
+    //     }
+    //     else {
+    //       console.log(longLat);
+    //       console.log(longitude);
+    //       console.log(latitude);
+    //       console.log("wrong longLat");
+    //       createPara("There is no key here.");
+    //       //There is no key here.
+    //     }
+    //   }
+    //   else {
+    //     //You already have the blue key.
+    //   }
+    // break;
+    // ---- Above is pick up handler ---- //
     //Use key
     case "USE KEY":
     case "USE KEY ON DOOR":
@@ -166,6 +353,7 @@ function goNorth(){
     refreshDesc();
     console.log("Gone north.");
     console.log(latitude);
+    updateItemLocation();
   }
   else {
     routeBlocked();
@@ -178,6 +366,7 @@ function goSouth(){
     refreshDesc();
     console.log("Gone South.");
     console.log(latitude);
+    updateItemLocation();
   }
   else {
     routeBlocked();
@@ -190,6 +379,7 @@ function goEast(){
     refreshDesc();
     console.log("Gone East.");
     console.log(longitude);
+    updateItemLocation();
   }
   else {
     routeBlocked();
@@ -202,6 +392,7 @@ function goWest(){
     refreshDesc();
     console.log("Gone West.");
     console.log(longitude);
+    updateItemLocation();
   }
   else {
     routeBlocked();
@@ -211,6 +402,35 @@ function goWest(){
 
 var blueKey=false;
 var objectArray = [null];
+
+//Updates the location of items in the inventory (inInventory===true)
+function updateItemLocation(){
+  var n = 0;
+  console.log("update item loc started");
+  function itemLocLoop(){
+    if (objectArray[n].inInventory===true){
+      console.log("first if statement");
+      console.log("Updating location of - " + objectArray[n].name);
+      objectArray[n].location=longLat;
+      n++;
+      if(n<objectArray.length){
+        itemLocLoop();
+      }
+    }
+    else if ((n+1)<objectArray.length){
+      console.log("second if statement, n =" + n);
+      n++;
+      itemLocLoop();
+    }
+    else if (n=objectArray.length){
+      console.log("Inventory is empty");
+    }
+    // if (longLat===objectArray[n].location && objectArray.inInventory===false){
+    //   createPara("There is a " + objectArray[n].name +" on the floor.");
+    // }
+  }
+  itemLocLoop();
+}
 
 function addToArray(objectName){
   console.log("Add to array initiated with " + objectName.name);
@@ -236,29 +456,52 @@ function addToArray(objectName){
   }
   arrayIterator();
 }
-
-function Item(name, inInventory, location){
+//Constructor function - blueprint for items
+function Item(name, inInventory, location, alias, specifier){
   this.name=name;
   this.inInventory=inInventory;
   this.location=location;
+  this.alias=alias;
+  this.specifier=specifier;
 }
 
-var redKey = new Item("Red Key", false, "1,0");
-var gnome = new Item("Mr Gnome", false, "0,0");
-var magicStar = new Item("Magic Star", true, "0,0");
+//Variables to create items
+var redKey = new Item("red key", false, "1,0", "KEY", "RED");
+var gnome = new Item("small gnome", false, "0,0", "GNOME", "SMALL");
+var purpleBook = new Item("purple book", false, "0,0", "BOOK", "PURPLE");
+
+//Adds all objects to an array which can be looped in other functions
 function addItems(){
   addToArray(redKey);
   addToArray(gnome);
-  addToArray(magicStar);
-  if (longLat===redKey.location && redKey.inInventory===false){
-    createPara("There is a red key on the floor.");
+  addToArray(purpleBook);
+  itemRoomDesc();
+  // if (longLat===purpleBook.location && purpleBook.inInventory===false){
+  //   createPara("There is a red key on the floor.");
+  // // }
+  // console.log(purpleBook.name + purpleBook.inInventory + purpleBook.location);
+}
+//Adds paragraph if any item is in the room, but not in the inventory
+function itemRoomDesc(){
+  var n=0;
+  function itemRoomLoop(){
+    console.log("item room loop started, " + objectArray[n].location);
+    if ((longLat===objectArray[n].location) && (objectArray[n].inInventory===false)){
+      createPara("There is a " + objectArray[n].name + " on the floor.");
+    }
+    if ((n+1)<objectArray.length){
+      n++;
+      itemRoomLoop();
+    }
   }
-  console.log(redKey.name + redKey.inInventory + redKey.location);
+  itemRoomLoop();
 }
 
 
 /* ----- ROOM AND DESCRIPTION CHANGERS ----- */
 
+//Variable is true after first loop (on window load)
+var secondRefresh=false;
 // Refresh descriptions to match current longLat and outline possible directions
 function refreshDesc() {
   resetDirections();
@@ -308,13 +551,16 @@ function refreshDesc() {
     default:
     roomDesc="There is nothing here.";
   }
-  addItems();
   // document.getElementById("latitudeText").innerHTML=latitude;
   // document.getElementById("longitudeText").innerHTML=longitude;
   // document.getElementById("longLatText").innerHTML=longLat;
   document.getElementById("descriptionText").innerHTML=roomDesc;
   console.log("Co-ordinates refreshed.");
   console.log(longLat);
+  if (secondRefresh===true){
+    itemRoomDesc();
+  }
+  secondRefresh=true;
 }
 
 //Reset all available directions to false so that avilable routes can be declared for current longLat
@@ -323,6 +569,7 @@ function resetDirections() {
   southTravel=false;
   eastTravel=false;
   westTravel=false;
+
 }
 
 //Remove temporary paragraphs, run in refreshDesc()
