@@ -127,7 +127,28 @@ function submitForm(event){
             createPara("There is nowhere to use the key.");
           }
         }
-      }
+    break;
+    case "PICK UP RED KEY":
+      if (redKey.inInventory===false) {
+        console.log("key input");
+        if (longLat===redKey.location){
+          redKey.inInventory=true;
+          console.log("key pickup");
+          refreshDesc();
+          createPara("You pick up the red key.");
+          //You pick up the Red Key
+        }
+        else {
+          console.log(longLat);
+          console.log(longitude);
+          console.log(latitude);
+          console.log("wrong longLat");
+          createPara("There is no red key here.");
+          //There is no key here.
+        }
+      break;
+    }
+  }
   commandForm.reset();
   event.preventDefault();
 }
@@ -189,6 +210,32 @@ function goWest(){
 /* ----- INVENTORY ----- */
 
 var blueKey=false;
+var objectArray = [null];
+
+function addToArray(objectName){
+  console.log("Add to array initiated with " + objectName.name);
+  var objectIndex=0;
+  function arrayIterator(){
+    console.log("arrayIterator started");
+    if (objectArray[objectIndex]===null){
+      objectArray[objectIndex]=objectName;
+      console.log(objectArray[objectIndex]);
+      console.log("Option 1");
+    }
+    else if ((objectIndex+1)===objectArray.length){
+      objectArray.push(objectName);
+      console.log(objectArray);
+      console.log("Option 2");
+    }
+    else {
+      console.log(objectArray[objectIndex]);
+      console.log("Option 3");
+      objectIndex++;
+      arrayIterator();
+    }
+  }
+  arrayIterator();
+}
 
 function Item(name, inInventory, location){
   this.name=name;
@@ -196,10 +243,14 @@ function Item(name, inInventory, location){
   this.location=location;
 }
 
-var redKey = new Item("redKey", false, "1,0");
-
+var redKey = new Item("Red Key", false, "1,0");
+var gnome = new Item("Mr Gnome", false, "0,0");
+var magicStar = new Item("Magic Star", true, "0,0");
 function addItems(){
-  if (longLat===redKey.location){
+  addToArray(redKey);
+  addToArray(gnome);
+  addToArray(magicStar);
+  if (longLat===redKey.location && redKey.inInventory===false){
     createPara("There is a red key on the floor.");
   }
   console.log(redKey.name + redKey.inInventory + redKey.location);
