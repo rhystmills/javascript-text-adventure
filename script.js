@@ -61,13 +61,16 @@ function pickUpHandler(parsedNoun){
   function pickUpLoop(){
     if (parsedNoun===objectArray[n].alias){
       console.log("Found object specified - " + objectArray[n].alias + ", " + objectArray[n].specifier);
-      if (longLat===objectArray[n].location){
+      if (longLat===objectArray[n].location&&objectArray[n].inInventory===false){
         objectArray[n].inInventory=true;
         refreshDesc();
         createPara("You pick up the "+objectArray[n].name);
       }
       else if (longLat!=objectArray[n].location){
         createPara("There is no "+objectArray[n].name + " here.");
+      }
+      else if (longLat===objectArray[n].location&&objectArray[n].inInventory===true){
+        createPara("You are already carrying the " + objectArray[n].name);
       }
     }
     else if (n<objectArray.length){
