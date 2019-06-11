@@ -67,10 +67,10 @@ function pickUpHandler(parsedNoun){
         createPara("You pick up the "+objectArray[n].name);
       }
       else if (longLat!=objectArray[n].location){
-        createPara("There is no "+objectArray[n].name + " here.");
+        createPara("There is no "+objectArray[n].alias.toLowerCase() + " here.");
       }
       else if (longLat===objectArray[n].location&&objectArray[n].inInventory===true){
-        createPara("You are already carrying the " + objectArray[n].name);
+        createPara("You are already carrying a " + objectArray[n].name + ". There is no other " + objectArray[n].alias.toLowerCase() + " here.");
       }
     }
     else if (n<objectArray.length){
@@ -300,44 +300,44 @@ function submitForm(event){
     // break;
     // ---- Above is pick up handler ---- //
     //Use key
-    case "USE KEY":
-    case "USE KEY ON DOOR":
-    case "USE BLUE KEY":
-    case "USE BLUE KEY ON DOOR":
-        if (blueKey===false) {
-          createPara("You do not have a key");
-        }
-        else if (blueKey===true) {
-          if (longLat==='0,0') {
-            doorStatus=true;
-            refreshDesc();
-            createPara("You open the door to the North.");
-          }
-          else {
-            createPara("There is nowhere to use the key.");
-          }
-        }
-    break;
-    case "PICK UP RED KEY":
-      if (redKey.inInventory===false) {
-        console.log("key input");
-        if (longLat===redKey.location){
-          redKey.inInventory=true;
-          console.log("key pickup");
-          refreshDesc();
-          createPara("You pick up the red key.");
-          //You pick up the Red Key
-        }
-        else {
-          console.log(longLat);
-          console.log(longitude);
-          console.log(latitude);
-          console.log("wrong longLat");
-          createPara("There is no red key here.");
-          //There is no key here.
-        }
-      break;
-    }
+    // case "USE KEY":
+    // case "USE KEY ON DOOR":
+    // case "USE BLUE KEY":
+    // case "USE BLUE KEY ON DOOR":
+    //     if (blueKey===false) {
+    //       createPara("You do not have a key");
+    //     }
+    //     else if (blueKey===true) {
+    //       if (longLat==='0,0') {
+    //         doorStatus=true;
+    //         refreshDesc();
+    //         createPara("You open the door to the North.");
+    //       }
+    //       else {
+    //         createPara("There is nowhere to use the key.");
+    //       }
+    //     }
+    // break;
+    // case "PICK UP RED KEY":
+    //   if (redKey.inInventory===false) {
+    //     console.log("key input");
+    //     if (longLat===redKey.location){
+    //       redKey.inInventory=true;
+    //       console.log("key pickup");
+    //       refreshDesc();
+    //       createPara("You pick up the red key.");
+    //       //You pick up the Red Key
+    //     }
+    //     else {
+    //       console.log(longLat);
+    //       console.log(longitude);
+    //       console.log(latitude);
+    //       console.log("wrong longLat");
+    //       createPara("There is no red key here.");
+    //       //There is no key here.
+    //     }
+    // //   break;
+    // }
   }
   commandForm.reset();
   event.preventDefault();
@@ -354,8 +354,6 @@ function goNorth(){
   if (northTravel===true){
     latitude++;
     refreshDesc();
-    console.log("Gone north.");
-    console.log(latitude);
     updateItemLocation();
   }
   else {
@@ -367,8 +365,6 @@ function goSouth(){
   if (southTravel===true){
     latitude--;
     refreshDesc();
-    console.log("Gone South.");
-    console.log(latitude);
     updateItemLocation();
   }
   else {
@@ -380,8 +376,6 @@ function goEast(){
   if (eastTravel===true){
     longitude++;
     refreshDesc();
-    console.log("Gone East.");
-    console.log(longitude);
     updateItemLocation();
   }
   else {
@@ -393,8 +387,6 @@ function goWest(){
   if (westTravel===true){
     longitude--;
     refreshDesc();
-    console.log("Gone West.");
-    console.log(longitude);
     updateItemLocation();
   }
   else {
@@ -529,7 +521,7 @@ function refreshDesc() {
     }
     else {
       northTravel=false;
-      roomDesc="You are in a large hall. There are doors in all directions.<br><br>The door to the North is locked. It has a blue keyhole.";
+      roomDesc="You are in a large hall. There are doors in all directions.<br><br>The door to the North is locked. It has a red keyhole.";
     }
     southTravel=true;
     eastTravel=true;
@@ -542,12 +534,12 @@ function refreshDesc() {
     break;
 
     case '0,-1':
-    if (blueKey===true){
+    // if (blueKey===true){
       roomDesc="You find yourself in a small stone room with a single window.";
-    }
-    else {
-      roomDesc="You find yourself in a small stone room with a single window. There is a blue key on the floor.";
-    }
+    // }
+    // else {
+    //   roomDesc="You find yourself in a small stone room with a single window. There is a blue key on the floor.";
+    // }
     northTravel=true;
     break;
 

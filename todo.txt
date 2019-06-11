@@ -1,0 +1,10 @@
+Create static furniture items that can be interacted with, but not picked up.
+Create a use verb which can use items to interact with static furniture items.
+Create active furniture items, like switches, which can be interacted with without using items.
+Create a vocabulary of extended verbs which make the world feel more interactive, e.g. dance, sing, kick, weep
+Set up a system for handling multiple items of the same type in a room, e.g. red key and blue key.
+Set up some default message to react to commands which are not understood, e.g. known verb + unknown noun.
+Set up some text effects to help with readability - perhaps progressively fade older commands?
+Incorporate error messages as standard paras (rather than a different system). createPara could have a parameter for message type
+Start with an intro screen to break players in
+Refactor existing functions, like the pickUp and drop handler
