@@ -50,27 +50,65 @@ function commandInit(){
 }
 window.addEventListener("load", commandInit);
 
-/*------  COMMAND PARSER  -----*/
+/****------  COMMAND PARSER  -----****/
 
-// Parsed Command Handlers //
+// *** Re-usable utility functions for command parser ***//
+
+// General compare input to string function //
+
+function compareToInput(){
+
+}
+
+//General compare longLat to object location //
+
+function atLongLat(item){
+    if(longLat===item.location) {
+      return true;
+    }
+    else {
+      return false;
+    }
+}
+function itemInInventory (item){
+  if(item.inInventory===false){
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
+function notInInventory (item){
+  if(item.inInventory===false){
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+// *** Parsed Command Handlers *** //
 
 // Pickup Handler
 function pickUpHandler(parsedNoun){
   console.log("Pick up handler active.")
   var n = 0;
   function pickUpLoop(){
-    if (parsedNoun===objectArray[n].alias){
-      console.log("Found object specified - " + objectArray[n].alias + ", " + objectArray[n].specifier);
-      if (longLat===objectArray[n].location&&objectArray[n].inInventory===false){
-        objectArray[n].inInventory=true;
+    //Create shorthand for current object in array
+    var item=objectArray[n];
+    if (parsedNoun===item.alias){
+      console.log("Found object specified - " + item.alias + ", " + item.specifier);
+      if (atLongLat(item) && notInInventory(item)){
+        item.inInventory=true;
         refreshDesc();
-        createPara("You pick up the "+objectArray[n].name);
+        createPara("You pick up the "+item.name);
       }
-      else if (longLat!=objectArray[n].location){
-        createPara("There is no "+objectArray[n].alias.toLowerCase() + " here.");
+      else if (notInInventory(item)){
+        createPara("There is no "+item.alias.toLowerCase() + " here.");
       }
-      else if (longLat===objectArray[n].location&&objectArray[n].inInventory===true){
-        createPara("You are already carrying a " + objectArray[n].name + ". There is no other " + objectArray[n].alias.toLowerCase() + " here.");
+      else if (atLongLat(item) && itemInInventory(item)){
+        createPara("You are already carrying a " + item.name + ". There is no other " + item.alias.toLowerCase() + " here.");
       }
     }
     else if (n<objectArray.length){
@@ -90,14 +128,16 @@ function dropHandler(parsedNoun){
   console.log("Drop handler active.")
   var n = 0;
   function dropLoop(){
-    if (parsedNoun===objectArray[n].alias){
-      console.log("Found object specified - " + objectArray[n].alias + ", " + objectArray[n].specifier);
-      if (longLat===objectArray[n].location&&objectArray[n].inInventory===true){
-        objectArray[n].inInventory=false;
-        createPara("You drop the "+objectArray[n].name);
+    //Create shorthand for current object in array
+    var item=objectArray[n];
+    if (parsedNoun===item.alias){
+      console.log("Found object specified - " + item.alias + ", " + item.specifier);
+      if (atLongLat(item) && itemInInventory(item)){
+        item.inInventory=false;
+        createPara("You drop the "+item.name);
       }
-      else if (longLat===objectArray[n].location&&objectArray[n].inInventory===false){
-        createPara("You are not carrying the "+objectArray[n].name);
+      else if (atLongLat(item) && notInInventory(item)){
+        createPara("You are not carrying the "+item.alias.toLowerCase());
       }
     }
     else if (n<objectArray.length){
