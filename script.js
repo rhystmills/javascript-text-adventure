@@ -70,6 +70,8 @@ function atLongLat(item){
       return false;
     }
 }
+
+//General function to check if item is in inventory
 function itemInInventory (item){
   if(item.inInventory===false){
     return false;
@@ -78,7 +80,7 @@ function itemInInventory (item){
     return true;
   }
 }
-
+//General function - returns true if item is *not* in inventory
 function notInInventory (item){
   if(item.inInventory===false){
     return true;
@@ -95,28 +97,35 @@ function pickUpHandler(parsedNoun){
   console.log("Pick up handler active.")
   var n = 0;
   function pickUpLoop(){
-    //Create shorthand for current object in array
+    //Create 'item' shorthand for current object in array
     var item=objectArray[n];
+    //Check if this item is the parsedNoun
     if (parsedNoun===item.alias){
       console.log("Found object specified - " + item.alias + ", " + item.specifier);
+      //Check if this item is not in the inventory and is at the current location - if so, pick it up
       if (atLongLat(item) && notInInventory(item)){
         item.inInventory=true;
         refreshDesc();
         createPara("You pick up the "+item.name);
       }
+      //if the item is not in the inventory, but is not at the current location, create a specific error message.
       else if (notInInventory(item)){
         createPara("There is no "+item.alias.toLowerCase() + " here.");
       }
+      //if you are already carrying the item, create a message saying that.
       else if (atLongLat(item) && itemInInventory(item)){
         createPara("You are already carrying a " + item.name + ". There is no other " + item.alias.toLowerCase() + " here.");
       }
     }
-    else if (n<objectArray.length){
+    //Loop again if the array isn't complete
+    else if (n<(objectArray.length-1)){
       n++;
       pickUpLoop();
     }
-    else if (n=objectArray.length){
+    //Give a console log if the noun isn't found.
+    else if (n=(objectArray.length-1)){
       console.log("Noun not found - "+ parsedNoun);
+      createPara("I don't know what that is.")
     }
   }
   pickUpLoop();
@@ -139,13 +148,18 @@ function dropHandler(parsedNoun){
       else if (atLongLat(item) && notInInventory(item)){
         createPara("You are not carrying the "+item.alias.toLowerCase());
       }
+      else if (notInInventory(item)){
+        createPara("You are not carrying a "+item.alias.toLowerCase());
+      }
     }
-    else if (n<objectArray.length){
+    else if (n<(objectArray.length-1)){
       n++;
+      console.log("Looping drop, n="+n+", object alias will be "+item.alias);
       dropLoop();
     }
-    else if (n=objectArray.length){
+    else if (n==(objectArray.length-1)){
       console.log("Not in inventory - "+ parsedNoun);
+      createPara("You are not carrying a "+item.alias.toLowerCase());
     }
   }
   dropLoop();
@@ -154,6 +168,7 @@ function dropHandler(parsedNoun){
 //Initiate verb variables
 var regexPickUp = /.*((PICK UP)|(TAKE)|(PICKUP)).*/;
 var regexDrop = /.*((DROP)|(PUT DOWN))/;
+var regexUse = /.*((USE)|(UTILISE)|(APPLY))/;
 var parsedVerb = null;
 
 function testForVerb(input){
@@ -174,6 +189,12 @@ function testForVerb(input){
   if (regexDrop.test(input)===true){
     console.log("Drop command listed for input of " + input);
     parsedVerb="DROP";
+    verbCount++;
+  }
+  //Test for USE command
+  if (regexUse.test(input)===true){
+    console.log("Use command listed for input of " + input);
+    parsedVerb="USE";
     verbCount++;
   }
 
@@ -208,7 +229,7 @@ function testForNoun(input){
   parsedNoun=null;
   //Clear parsedNoun variable
   parsedNoun=null;
-  //Initiate count of the nound
+  //Initiate count of the nouns
   var nounCount=0;
   // ----- TEST FOR NOUNS ----- //
 
@@ -231,9 +252,9 @@ function testForNoun(input){
     nounCount++;
   }
 
-  // ----- Do things based on verb results -----//
+  // ----- Do things based on noun results -----//
 
-  //Return the parsedVerb if only one verb has been counted.
+  //Return the parsedNoun if only one noun has been counted.
   if (nounCount===1){
     return parsedNoun;
   }
@@ -249,7 +270,45 @@ function testForNoun(input){
 }
 
 // ----- End Noun Parser ----- //
+// ----- TEST FOR PROPS  ----- //
 
+//Initiate prop variables
+var regexDoor = /.*(DOOR).*/;
+var parsedProp = null;
+
+function testForProp(input){
+  parsedProp=null;
+  //Clear parsedProp variable
+  parsedProp=null;
+  //Initiate count of the prop
+  var propCount=0;
+  // ----- TEST FOR PROP ----- //
+
+  //Test for DOOR prop
+  if (regexDoor.test(input)===true){
+    console.log("Door found with name " + input);
+    parsedProp="DOOR";
+    propCount++;
+  }
+
+  // ----- Do things based on prop results -----//
+
+  //Return the parsedProp if only one verb has been counted.
+  if (propCount===1){
+    return parsedProp;
+  }
+  //Prompt the user if multiple nouns have been encountered.
+  else if (propCount>1){
+    parsedProp=null;
+    createPara("That's a lot of things.")
+  }
+  //Console log if no prop is found
+  else if (propCount===0){
+    console.log("No prop found.")
+  }
+}
+
+// ----- End Prop Parser ----- //
 // ----- COMMAND HANDLER ----- //
 
 function submitForm(event){
@@ -274,14 +333,19 @@ function submitForm(event){
   switch (parsedVerb) {
     case "PICKUP":
       if (parsedNoun===null) {
-        createPara("You haven't told me what to pick up");
+        createPara("I'm not sure what to pick up");
       }
       else {
         pickUpHandler(parsedNoun);
       }
     break;
     case "DROP":
-      dropHandler(parsedNoun);
+      if (parsedNoun===null) {
+        createPara("I'm not sure what you want to drop");
+      }
+      else {
+        dropHandler(parsedNoun);
+      }
     break;
   }
 
@@ -532,6 +596,21 @@ function itemRoomDesc(){
   itemRoomLoop();
 }
 
+/*----- WORLD PROPS ----*/
+
+//Prototype object literal. With the
+var redDoor = {
+  locked: true,
+  unlock: function(noun, verb) {
+    if (noun=="redKey"&&(verb=="use"||verb=="unlock")){
+      createPara("You unlock the door.");
+      redDoor.locked=false;
+    }
+  },
+  keyhole: {
+
+  }
+}
 
 /* ----- ROOM AND DESCRIPTION CHANGERS ----- */
 

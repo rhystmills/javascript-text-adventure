@@ -8,3 +8,7 @@ Set up some text effects to help with readability - perhaps progressively fade o
 Incorporate error messages as standard paras (rather than a different system). createPara could have a parameter for message type
 Start with an intro screen to break players in
 Refactor existing functions, like the pickUp and drop handler
+
+Prop objects should have item slots if they are part of a class called a receptacle (e.g. receptacle property=true)
+A user can put items there, and it will add to the description of the room. e.g. There is a red key on the table.
+There is a red key in the door.
