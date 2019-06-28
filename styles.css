@@ -7,15 +7,17 @@ html{
 }
 body{
   margin:0px;
+  background-color: #1c1c1c;
   padding:0px;
   min-height:100%;
   width:100%;
   float:left;
   position: relative;
-  font-family: monospace;
+  font-family: 'VT323', monospace;
+  color: #f69e6f;
   font-smooth: never;
   -webkit-font-smoothing : none;
-  font-size: 14pt;
+  font-size: 18pt;
 }
 p{
   margin-left: 1em;
@@ -48,14 +50,31 @@ p{
   width: 98%;
 }
 input[type="text"]{
-  font-family: monospace;
+  background-color: #1c1c1c;
+  font-family: 'VT323', monospace;
+  color: #f69e6f;
   font-smooth: never;
   -webkit-font-smoothing : none;
-  font-size: 14pt;
+  font-size: 18pt;
   bottom:0px;
   width: 98%;
   border-style:none;
 }
 textarea:focus, input:focus{
     outline: none;
+}
+.item{
+  color: #ffe1d1;
+}
+.itemMild{
+  color: #c4a797;
+}
+.itemStrong{
+  color: #eeeeee;
+}
+.warningMild{
+  color: #bb6a3e;
+}
+.rewardMild{
+  color: #fecaaf;
 }

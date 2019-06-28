@@ -12,3 +12,16 @@ Refactor existing functions, like the pickUp and drop handler
 Prop objects should have item slots if they are part of a class called a receptacle (e.g. receptacle property=true)
 A user can put items there, and it will add to the description of the room. e.g. There is a red key on the table.
 There is a red key in the door.
+
+
+The problem with the drop loop is this: it picks up the item, which passes the first logic test, and does not reach the else ifs.
+
+Construct language patterns? Eg. for open - "open door with key" = verb prop noun. Use key on door = Vern noun prop
+
+**Make the AddToArray function also work for props, with a parameter for the chosen array**
+
+Multi-purpose "loop through array and find item/prop" function?
+
+Improve messages for nonsensical moves like "use gnome on door"
+
+Handle multiple keys for the door

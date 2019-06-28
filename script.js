@@ -34,10 +34,11 @@ window.onload = function() {
 /*------ TEXT CREATION TOOLS ------*/
 function createPara(textContent){
     var node = document.createElement("P");                  // Create a <p> node
-    var textnode = document.createTextNode(textContent);     // Create a text node
-    node.appendChild(textnode);                              // Append the text to <p>
+    // var textnode = document.createTextNode(textContent);     // Create a text node
+    // node.appendChild(textnode);                              // Append the text to <p>
     node.setAttribute('class', 'temporaryPara');
     document.getElementById("lowerMarker").appendChild(node);// Append <p> to <p> with id="lowerMarker"
+    node.innerHTML=textContent;
 }
 /*------ CONSOLE CONTROLS-----*/
 
@@ -58,6 +59,15 @@ window.addEventListener("load", commandInit);
 
 function compareToInput(){
 
+}
+
+//HTML span elements for use in text
+function warningMild(text){
+  return `<span class="warningMild">${text}</span>`;
+}
+let endSpan=`</span>`;
+function itemMild(text){
+  return `<span class="itemMild">${text}</span>`;
 }
 
 //General compare longLat to object location //
@@ -90,6 +100,17 @@ function notInInventory (item){
   }
 }
 
+//General function to find a prop
+
+function findProp(parsedProp){
+  for(let n=0;n<propArray.length;n++){
+    if (propArray[n].alias==parsedProp){
+      console.log("Found prop" + propArray[n]);
+      return propArray[n];
+    }
+  }
+}
+
 // *** Parsed Command Handlers *** //
 
 // Pickup Handler
@@ -106,15 +127,15 @@ function pickUpHandler(parsedNoun){
       if (atLongLat(item) && notInInventory(item)){
         item.inInventory=true;
         refreshDesc();
-        createPara("You pick up the "+item.name);
+        createPara(`${warningMild("You pick up the ")}${itemMild(item.name)}.`);
       }
       //if the item is not in the inventory, but is not at the current location, create a specific error message.
       else if (notInInventory(item)){
-        createPara("There is no "+item.alias.toLowerCase() + " here.");
+        createPara(`${warningMild("There is no ")}${itemMild(item.alias.toLowerCase())}${warningMild(" here.")}`);
       }
       //if you are already carrying the item, create a message saying that.
       else if (atLongLat(item) && itemInInventory(item)){
-        createPara("You are already carrying a " + item.name + ". There is no other " + item.alias.toLowerCase() + " here.");
+        createPara(`${warningMild("You are already carrying a ")}${itemMild(item.name)}${warningMild(". There is no other ")}${itemMild(item.alias.toLowerCase())}${warningMild(" here.")}`);
       }
     }
     //Loop again if the array isn't complete
@@ -143,13 +164,13 @@ function dropHandler(parsedNoun){
       console.log("Found object specified - " + item.alias + ", " + item.specifier);
       if (atLongLat(item) && itemInInventory(item)){
         item.inInventory=false;
-        createPara("You drop the "+item.name);
+        createPara(`${warningMild("You drop the ")}${itemMild(item.name)}.`);
       }
       else if (atLongLat(item) && notInInventory(item)){
-        createPara("You are not carrying the "+item.alias.toLowerCase());
+        createPara(`${warningMild("You are not carrying the ")}${itemMild(item.alias.toLowerCase())}.`);
       }
       else if (notInInventory(item)){
-        createPara("You are not carrying a "+item.alias.toLowerCase());
+        createPara(`${warningMild("You are not carrying a ")}${itemMild(item.alias.toLowerCase())}.`);
       }
     }
     else if (n<(objectArray.length-1)){
@@ -163,6 +184,50 @@ function dropHandler(parsedNoun){
     }
   }
   dropLoop();
+}
+
+//Use Handler
+
+function useHandler(parsedNoun, parsedProp){
+  console.log("Use handler active.")
+  var n = 0;
+  function useLoop(){
+    //Create shorthand for current object in array
+    var item=objectArray[n];
+    if (parsedNoun===item.alias){
+      console.log("Found object specified - " + item.alias + ", " + item.specifier);
+      if (atLongLat(item) && itemInInventory(item)){
+        createPara(`${warningMild("Nothing happens. Could you try being more specific?")}`);
+        let matchedProp=findProp(parsedProp);
+        console.log("trying to use prop");
+        if (matchedProp){
+          matchedProp.use("USE",matchedProp.alias,matchedProp.specifier,item);
+          console.log("should have used prop");
+        }
+      }
+      else if (atLongLat(item) && notInInventory(item)){
+        createPara(`${warningMild("You are not carrying the ")}${itemMild(item.alias.toLowerCase())}.`);
+      }
+      else if (notInInventory(item)){
+        createPara(`${warningMild("You are not carrying a ")}${itemMild(item.alias.toLowerCase())}.`);
+      }
+    }
+    else if (n<(objectArray.length-1)){
+      n++;
+      console.log("Looping use, n="+n+", object alias will be "+item.alias);
+      useLoop();
+    }
+    else if (n==(objectArray.length-1)){
+      console.log("Not in inventory - "+ parsedNoun);
+      let matchedProp=findProp(parsedProp);
+      if (matchedProp){
+        matchedProp.use(matchedProp.alias,matchedProp.specifier);
+      }
+    // Do a loop of the prop array here to look for the prop
+      createPara("Nothing happens to the "+matchedProp.alias.toLowerCase()+".");
+    }
+  }
+  useLoop();
 }
 
 //Initiate verb variables
@@ -319,6 +384,7 @@ function submitForm(event){
   console.log('Form submitted. Value:' + commandForm["commandBox"].value);
   testForVerb(command);
   testForNoun(command);
+  testForProp(command);
 
   console.log("Parsed verb passed to submitForm with value of " + parsedVerb);
   if (parsedVerb==null){
@@ -333,7 +399,7 @@ function submitForm(event){
   switch (parsedVerb) {
     case "PICKUP":
       if (parsedNoun===null) {
-        createPara("I'm not sure what to pick up");
+        createPara("I'm not sure what to pick up.");
       }
       else {
         pickUpHandler(parsedNoun);
@@ -341,12 +407,19 @@ function submitForm(event){
     break;
     case "DROP":
       if (parsedNoun===null) {
-        createPara("I'm not sure what you want to drop");
+        createPara("I'm not sure what you want to drop.");
       }
       else {
         dropHandler(parsedNoun);
       }
     break;
+    case "USE":
+      if (parsedNoun===null&&parsedProp===null) {
+        createPara("I'm not sure what you want to use.");
+      }
+      else {
+        useHandler(parsedNoun, parsedProp);
+    }
   }
 
 
@@ -531,23 +604,23 @@ function updateItemLocation(){
   itemLocLoop();
 }
 
-function addToArray(objectName){
+function addToArray(objectName,arrayName){
   console.log("Add to array initiated with " + objectName.name);
   var objectIndex=0;
   function arrayIterator(){
     console.log("arrayIterator started");
-    if (objectArray[objectIndex]===null){
-      objectArray[objectIndex]=objectName;
-      console.log(objectArray[objectIndex]);
+    if (arrayName[objectIndex]===null){
+      arrayName[objectIndex]=objectName;
+      console.log(arrayName[objectIndex]);
       console.log("Option 1");
     }
-    else if ((objectIndex+1)===objectArray.length){
-      objectArray.push(objectName);
-      console.log(objectArray);
+    else if ((objectIndex+1)===arrayName.length){
+      arrayName.push(objectName);
+      console.log(arrayName);
       console.log("Option 2");
     }
     else {
-      console.log(objectArray[objectIndex]);
+      console.log(arrayName[objectIndex]);
       console.log("Option 3");
       objectIndex++;
       arrayIterator();
@@ -571,9 +644,10 @@ var purpleBook = new Item("purple book", false, "0,0", "BOOK", "PURPLE");
 
 //Adds all objects to an array which can be looped in other functions
 function addItems(){
-  addToArray(redKey);
-  addToArray(gnome);
-  addToArray(purpleBook);
+  addToArray(redKey,objectArray);
+  addToArray(gnome,objectArray);
+  addToArray(purpleBook,objectArray);
+  addToArray(redDoor,propArray);
   itemRoomDesc();
   // if (longLat===purpleBook.location && purpleBook.inInventory===false){
   //   createPara("There is a red key on the floor.");
@@ -586,7 +660,7 @@ function itemRoomDesc(){
   function itemRoomLoop(){
     console.log("item room loop started, " + objectArray[n].location);
     if ((longLat===objectArray[n].location) && (objectArray[n].inInventory===false)){
-      createPara("There is a " + objectArray[n].name + " on the floor.");
+      createPara(`There is a <span class="item"> ${objectArray[n].name} </span> on the floor.`);
     }
     if ((n+1)<objectArray.length){
       n++;
@@ -598,18 +672,27 @@ function itemRoomDesc(){
 
 /*----- WORLD PROPS ----*/
 
+var propArray = [null];
+
 //Prototype object literal. With the
 var redDoor = {
   locked: true,
-  unlock: function(noun, verb) {
-    if (noun=="redKey"&&(verb=="use"||verb=="unlock")){
-      createPara("You unlock the door.");
-      redDoor.locked=false;
+  use: function(verb, alias, specifier, item) {
+    console.log("Use function activated");
+    if(item){
+      if (item.alias=="KEY"&&(verb=="UNLOCK"||verb=="USE")&&item.specifier=="RED"){
+        redDoor.locked=false;
+        refreshDesc();
+        createPara(`${warningMild("You unlock the door.")}`);
+      }
     }
   },
   keyhole: {
-
-  }
+  },
+  name: "red door",
+  location: "0,0",
+  alias: "DOOR",
+  specifier: "RED"
 }
 
 /* ----- ROOM AND DESCRIPTION CHANGERS ----- */
@@ -634,7 +717,7 @@ function refreshDesc() {
     break;
 
     case '0,0':
-    if (doorStatus===true) {
+    if (redDoor.locked===false) {
       northTravel=true;
       roomDesc="You are in a large hall. There are doors in all directions.<br><br>The door to the North is unlocked.";
     }
@@ -700,7 +783,7 @@ function removeTemporaryPara() {
 var i = -1;
 function routeBlocked(){
   var errorText=document.getElementById("errorMessage");
-  var colorArray=["#db1200","#bc0f00","#9e0c00","#7c0900","#600700","#3f0500","#1e0200","#000000"];
+  var colorArray=["#db1200","#bc0f00","#9e0c00","#7c0900","#600700","#3f0500","#1c1c1c","#1c1c1c"];
   i=-1;
   function errorColor(runCheck){
     console.log("runCheck="+runCheck);
