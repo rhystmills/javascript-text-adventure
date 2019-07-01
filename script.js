@@ -144,7 +144,7 @@ function pickUpHandler(parsedNoun){
       pickUpLoop();
     }
     //Give a console log if the noun isn't found.
-    else if (n=(objectArray.length-1)){
+    else if (n==(objectArray.length-1)){
       console.log("Noun not found - "+ parsedNoun);
       createPara("I don't know what that is.")
     }
@@ -188,7 +188,7 @@ function dropHandler(parsedNoun){
 
 //Use Handler
 
-function useHandler(parsedNoun, parsedProp){
+function useHandler(parsedVerb, parsedNoun, parsedProp){
   console.log("Use handler active.")
   var n = 0;
   function useLoop(){
@@ -197,12 +197,14 @@ function useHandler(parsedNoun, parsedProp){
     if (parsedNoun===item.alias){
       console.log("Found object specified - " + item.alias + ", " + item.specifier);
       if (atLongLat(item) && itemInInventory(item)){
-        createPara(`${warningMild("Nothing happens. Could you try being more specific?")}`);
         let matchedProp=findProp(parsedProp);
         console.log("trying to use prop");
         if (matchedProp){
-          matchedProp.use("USE",matchedProp.alias,matchedProp.specifier,item);
+          matchedProp.use(parsedVerb,matchedProp.alias,matchedProp.specifier,item);
           console.log("should have used prop");
+        }
+        else {
+          item.use(parsedVerb,item.alias,item.specifier,item);
         }
       }
       else if (atLongLat(item) && notInInventory(item)){
@@ -221,10 +223,10 @@ function useHandler(parsedNoun, parsedProp){
       console.log("Not in inventory - "+ parsedNoun);
       let matchedProp=findProp(parsedProp);
       if (matchedProp){
-        matchedProp.use(matchedProp.alias,matchedProp.specifier);
+        matchedProp.use(parsedVerb);
       }
-    // Do a loop of the prop array here to look for the prop
-      createPara("Nothing happens to the "+matchedProp.alias.toLowerCase()+".");
+    // Generic message for prop use - now inactive
+      //createPara("Nothing happens to the "+matchedProp.alias.toLowerCase()+".");
     }
   }
   useLoop();
@@ -232,8 +234,11 @@ function useHandler(parsedNoun, parsedProp){
 
 //Initiate verb variables
 var regexPickUp = /.*((PICK UP)|(TAKE)|(PICKUP)).*/;
-var regexDrop = /.*((DROP)|(PUT DOWN))/;
-var regexUse = /.*((USE)|(UTILISE)|(APPLY))/;
+var regexDrop = /.*((DROP)|(PUT DOWN)).*/;
+var regexUse = /.*((USE)|(UTILISE)|(APPLY)|(OPEN)).*/;
+var regexLock = /.*(LOCK).*/;
+var regexUnlock = /.*(UNLOCK).*/;
+var regexExamine = /.*(EXAMINE|INVESTIGATE|LOOK).*/;
 var parsedVerb = null;
 
 function testForVerb(input){
@@ -244,24 +249,26 @@ function testForVerb(input){
 
   // ----- TEST FOR VERBS ----- //
 
-  //Test for PICKUP command
-  if (regexPickUp.test(input)===true){
-    console.log("Pick up command listed for input of " + input);
-    parsedVerb="PICKUP";
+  //Re-usable regex function
+  function regexVerbTest(regexVar,verbOutput){
+    if (regexVar.test(input)===true){
+      console.log(verbOutput+"listed for input of " + input);
+      parsedVerb=verbOutput;
+      verbCount++;
+    }
+  }
+  //Test for verb commands
+  regexVerbTest(regexPickUp,"PICKUP");
+  regexVerbTest(regexDrop,"DROP");
+  regexVerbTest(regexUse,"USE");
+  //Test for Lock - expanded because must exlude UNLOCK
+  if (regexLock.test(input)===true&&regexUnlock.test(input)===false){
+    console.log("Lock command listed for input of " + input);
+    parsedVerb="LOCK";
     verbCount++;
   }
-  //Test for DROP command
-  if (regexDrop.test(input)===true){
-    console.log("Drop command listed for input of " + input);
-    parsedVerb="DROP";
-    verbCount++;
-  }
-  //Test for USE command
-  if (regexUse.test(input)===true){
-    console.log("Use command listed for input of " + input);
-    parsedVerb="USE";
-    verbCount++;
-  }
+  regexVerbTest(regexUnlock,"UNLOCK");
+  regexVerbTest(regexExamine,"EXAMINE");
 
   // ----- Do things based on verb results -----//
 
@@ -326,7 +333,7 @@ function testForNoun(input){
   //Prompt the user if multiple nouns have been encountered.
   else if (nounCount>1){
     parsedNoun=null;
-    createPara("That's a lot of nouns.")
+    createPara(`${warningMild("That's a lot of nouns.")}`)
   }
   //Console log if no noun is found
   else if (nounCount===0){
@@ -399,7 +406,7 @@ function submitForm(event){
   switch (parsedVerb) {
     case "PICKUP":
       if (parsedNoun===null) {
-        createPara("I'm not sure what to pick up.");
+        createPara(`${warningMild("I'm not sure what to pick up")}`);
       }
       else {
         pickUpHandler(parsedNoun);
@@ -407,18 +414,23 @@ function submitForm(event){
     break;
     case "DROP":
       if (parsedNoun===null) {
-        createPara("I'm not sure what you want to drop.");
+        createPara(`${warningMild("I'm not sure what you want to drop.")}`);
       }
       else {
         dropHandler(parsedNoun);
       }
     break;
+    //TODO: Add other verbs here, with parsedVerb passed in, to be handled by objects
+    case "UNLOCK":
+    case "LOCK":
+    case "EXAMINE":
     case "USE":
       if (parsedNoun===null&&parsedProp===null) {
-        createPara("I'm not sure what you want to use.");
+        createPara(`${warningMild("I'm not sure what you want to use.")}`);
+        //Above, add dynamic to lower variable for the verb
       }
       else {
-        useHandler(parsedNoun, parsedProp);
+        useHandler(parsedVerb, parsedNoun, parsedProp);
     }
   }
 
@@ -639,8 +651,28 @@ function Item(name, inInventory, location, alias, specifier){
 
 //Variables to create items
 var redKey = new Item("red key", false, "1,0", "KEY", "RED");
-var gnome = new Item("small gnome", false, "0,0", "GNOME", "SMALL");
-var purpleBook = new Item("purple book", false, "0,0", "BOOK", "PURPLE");
+var gnome = new Item("small gnome", false, "0,-1", "GNOME", "SMALL");
+var purpleBook = new Item("purple book", false, "1,0", "BOOK", "PURPLE");
+var blueKey = new Item("blue key", false, "-1,0", "KEY", "BLUE");
+//Extra item properties
+redKey.use = function (verb, alias, specifier, item) {
+  if (verb=="EXAMINE"){
+    createPara(`${warningMild("It is a finely crafted key, with a rich red colour.")}`);
+  }
+}
+gnome.use = function (verb, alias, specifier, item) {
+  if (verb=="EXAMINE"){
+    createPara(`${warningMild("It is a standard garden gnome, with a rather smug expression.")}`);
+  }
+  else if (verb=="USE"){
+    createPara(`${warningMild("There is not much you can do with the gnome.")}`);
+  }
+}
+purpleBook.use = function (verb, alias, specifier, item) {
+  if (verb=="EXAMINE"){
+    createPara(`${warningMild("It is a dusty and rather expensive looking purple tome.")}`);
+  }
+}
 
 //Adds all objects to an array which can be looped in other functions
 function addItems(){
@@ -648,6 +680,7 @@ function addItems(){
   addToArray(gnome,objectArray);
   addToArray(purpleBook,objectArray);
   addToArray(redDoor,propArray);
+  addToArray(blueKey,objectArray);
   itemRoomDesc();
   // if (longLat===purpleBook.location && purpleBook.inInventory===false){
   //   createPara("There is a red key on the floor.");
@@ -680,11 +713,28 @@ var redDoor = {
   use: function(verb, alias, specifier, item) {
     console.log("Use function activated");
     if(item){
-      if (item.alias=="KEY"&&(verb=="UNLOCK"||verb=="USE")&&item.specifier=="RED"){
+      if (redDoor.locked===true&&item.alias=="KEY"&&(verb=="UNLOCK"||verb=="USE")&&item.specifier=="RED"){
         redDoor.locked=false;
         refreshDesc();
         createPara(`${warningMild("You unlock the door.")}`);
       }
+      else if (redDoor.locked===false&&item.alias=="KEY"&&(verb=="LOCK"||verb=="USE")&&item.specifier=="RED"){
+        redDoor.locked=true;
+        refreshDesc();
+        createPara(`${warningMild("You lock the door.")}`);
+      }
+      if (alias=="KEY"&&(verb=="LOCK"||verb=="USE"||verb=="UNLOCK")&&item.specifier=="BLUE"){
+        createPara(`${warningMild("You try the key in the door, but it won't turn.")}`);
+      }
+    }
+    else if (redDoor.locked===true&&(verb=="UNLOCK"||verb=="USE")){
+      createPara(`${warningMild("You try the door but it doesn't budge.")}`);
+    }
+    else if (redDoor.locked===false&&(verb=="UNLOCK"||verb=="USE")){
+      createPara(`${warningMild("The unlocked door swings freely in your grasp.")}`);
+    }
+    else if (verb=="EXAMINE"){
+      createPara(`${warningMild("It is a firm and sturdy door. You notice that it has a red keyhole.")}`);
     }
   },
   keyhole: {
@@ -723,7 +773,7 @@ function refreshDesc() {
     }
     else {
       northTravel=false;
-      roomDesc="You are in a large hall. There are doors in all directions.<br><br>The door to the North is locked. It has a red keyhole.";
+      roomDesc="You are in a large hall. There are doors in all directions.<br><br>The door to the North is shut.";
     }
     southTravel=true;
     eastTravel=true;

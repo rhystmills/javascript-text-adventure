@@ -25,3 +25,16 @@ Multi-purpose "loop through array and find item/prop" function?
 Improve messages for nonsensical moves like "use gnome on door"
 
 Handle multiple keys for the door
+
+If prop in room uses that item say "what do you want to use it with?"
+Otherwise see if it can be used with another item
+Otherwise nothing happens
+
+Can items and props be the same thing?
+
+
+Welcome text, and help commands
+
+If you input "Unlock door" with the key in inventory, it should give a relevant prompt.
+
+The pick up handler will have to loop through an array of items with that alias, and check them all against the current room
