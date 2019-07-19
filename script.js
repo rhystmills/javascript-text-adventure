@@ -113,14 +113,93 @@ function findProp(parsedProp){
 
 // *** Parsed Command Handlers *** //
 
+function filterItems(array,condition,property){
+  let arrayOfMatched=[];
+  for(let i=0;i<array.length;i++){
+    if(array[i][`${property}`]===condition){
+      arrayOfMatched.push(array[i]);
+    }
+  }
+  return arrayOfMatched;
+}
+
+
 // Pickup Handler
-function pickUpHandler(parsedNoun){
+function pickUpHandler(parsedNoun,parsedDesc){
   console.log("Pick up handler active.")
-  var n = 0;
+
+  let tempItemArray=filterItems(objectArray,parsedNoun,'alias');
+  let correctItem={};
+  for (i=0;i<tempItemArray.length;i++){
+    if(tempItemArray[i].specifier===parsedDesc){
+      console.log("Found named item: " + tempItemArray[i].specifier + tempItemArray[i].alias);
+      correctItem=tempItemArray[i];
+      console.log(correctItem);
+    }
+  }
+  //Search for the correct item in the current room, act based on its presence
+  if (parsedNoun===correctItem.alias&&parsedDesc===correctItem.specifier){
+    if (atLongLat(correctItem) && notInInventory(correctItem)){
+      correctItem.inInventory=true;
+      refreshDesc();
+      createPara(`${warningMild("You pick up the ")}${itemMild(correctItem.name)}.`);
+      return;
+    }
+    else if (notInInventory(correctItem)){
+      createPara(`${warningMild("There is no ")}${itemMild(correctItem.alias.toLowerCase())}${warningMild(" here.")}`);
+      return;
+    }
+    else if (itemInInventory(correctItem)){
+      createPara(`${warningMild("You are already carrying the ")}${itemMild(correctItem.specifier.toLowerCase()+" "+correctItem.alias.toLowerCase())}${warningMild(".")}`);
+      return;
+    }
+  }
+
+  //See if there is more than one of the item present
+  if (tempItemArray.length>0){
+    let countInRoom=0;
+    for (i=0;i<tempItemArray.length;i++){
+      if (atLongLat(tempItemArray[i]) && notInInventory(tempItemArray[i])){
+        countInRoom++;
+      }
+    }
+    //Prompt the user if there is more than one.
+    if (countInRoom>1){
+      createPara(`${warningMild("Which ")}${itemMild(parsedNoun.toLowerCase())}${warningMild("?")}`)
+      return;
+    }
+    //now you can say if count in room is 0, return error
+    //And, if countinroom is 1, pick it up
+    else if (countInRoom===0){
+      createPara(`${warningMild("There aint no ")}${itemMild(parsedNoun.toLowerCase())}${warningMild(" here bruv.")}`);
+      return;
+    }
+    else if (countInRoom===1){
+      for (i=0;i<tempItemArray.length;i++){
+        if (atLongLat(tempItemArray[i]) && notInInventory(tempItemArray[i])){
+          tempItemArray[i].inInventory=true;
+          refreshDesc();
+          createPara(`${warningMild("You pick up the darned ")}${itemMild(tempItemArray[i].name)}.`);
+        }
+      }
+    }
+  }
+
+  /*var n = 0;
+
   function pickUpLoop(){
     //Create 'item' shorthand for current object in array
     var item=objectArray[n];
     //Check if this item is the parsedNoun
+
+
+    // 1. If valid noun and valid desc found, test the room for the specific object that matches.
+    // 2. If only a valid noun is found: if there is only one of those in the room, pick it up.
+    // 3. If there is more than one, prompt for a Desc. Accept a valid desc alone in the next command.
+
+    //Identify a unique noun-verb combination in the array
+
+
     if (parsedNoun===item.alias){
       console.log("Found object specified - " + item.alias + ", " + item.specifier);
       //Check if this item is not in the inventory and is at the current location - if so, pick it up
@@ -149,46 +228,104 @@ function pickUpHandler(parsedNoun){
       createPara("I don't know what that is.")
     }
   }
-  pickUpLoop();
+  pickUpLoop(); */
 }
 
 //Drop Handler
 
-function dropHandler(parsedNoun){
+function dropHandler(parsedNoun, parsedDesc){
   console.log("Drop handler active.")
-  var n = 0;
-  function dropLoop(){
-    //Create shorthand for current object in array
-    var item=objectArray[n];
-    if (parsedNoun===item.alias){
-      console.log("Found object specified - " + item.alias + ", " + item.specifier);
-      if (atLongLat(item) && itemInInventory(item)){
-        item.inInventory=false;
-        createPara(`${warningMild("You drop the ")}${itemMild(item.name)}.`);
-      }
-      else if (atLongLat(item) && notInInventory(item)){
-        createPara(`${warningMild("You are not carrying the ")}${itemMild(item.alias.toLowerCase())}.`);
-      }
-      else if (notInInventory(item)){
-        createPara(`${warningMild("You are not carrying a ")}${itemMild(item.alias.toLowerCase())}.`);
-      }
-    }
-    else if (n<(objectArray.length-1)){
-      n++;
-      console.log("Looping drop, n="+n+", object alias will be "+item.alias);
-      dropLoop();
-    }
-    else if (n==(objectArray.length-1)){
-      console.log("Not in inventory - "+ parsedNoun);
-      createPara("You are not carrying a "+item.alias.toLowerCase());
+
+  let tempItemArray=filterItems(objectArray,parsedNoun,'alias');
+  let correctItem={};
+  for (i=0;i<tempItemArray.length;i++){
+    if(tempItemArray[i].specifier===parsedDesc){
+      console.log("Found named item: " + tempItemArray[i].specifier + tempItemArray[i].alias);
+      correctItem=tempItemArray[i];
+      console.log(correctItem);
     }
   }
-  dropLoop();
+  //Search for the correct item in the current room, act based on its presence
+  if (parsedNoun===correctItem.alias&&parsedDesc===correctItem.specifier){
+    if (itemInInventory(correctItem)){
+      correctItem.inInventory=false;
+      refreshDesc();
+      createPara(`${warningMild("You drop the ")}${itemMild(correctItem.name)}.`);
+      return;
+    }
+    else if (notInInventory(correctItem)){
+      createPara(`${warningMild("You are not carrying a ")}${itemMild(correctItem.alias.toLowerCase())}${warningMild(".")}`);
+      return;
+    }
+    // else if (itemInInventory(correctItem)){
+    //   createPara(`${warningMild("You are already carrying the ")}${itemMild(correctItem.specifier.toLowerCase()+" "+correctItem.alias.toLowerCase())}${warningMild(".")}`);
+    //   return;
+    // }
+  }
+
+  //See if there is more than one of the item present
+  if (tempItemArray.length>0){
+    let countInInventory=0;
+    for (i=0;i<tempItemArray.length;i++){
+      if (itemInInventory(tempItemArray[i])){
+        countInInventory++;
+      }
+    }
+    //Prompt the user if there is more than one.
+    if (countInInventory>1){
+      createPara(`${warningMild("Which ")}${itemMild(parsedNoun.toLowerCase())}${warningMild(" do you want to drop?")}`)
+      return;
+    }
+    //now you can say if count in inventory is 0, return error
+    else if (countInInventory===0){
+      createPara(`${warningMild("You are not carrying a ")}${itemMild(parsedNoun.toLowerCase())}${warningMild(".")}`);
+      return;
+    }
+    //And, if count in inventory is 1, pick it up
+    else if (countInInventory===1){
+      for (i=0;i<tempItemArray.length;i++){
+        if (itemInInventory(tempItemArray[i])){
+          tempItemArray[i].inInventory=false;
+          refreshDesc();
+          createPara(`${warningMild("You drop the darned ")}${itemMild(tempItemArray[i].name)}.`);
+        }
+      }
+    }
+  }
+
+  // var n = 0;
+  // function dropLoop(){
+  //   //Create shorthand for current object in array
+  //   var item=objectArray[n];
+  //   if (parsedNoun===item.alias){
+  //     console.log("Found object specified - " + item.alias + ", " + item.specifier);
+  //     if (atLongLat(item) && itemInInventory(item)){
+  //       item.inInventory=false;
+  //       createPara(`${warningMild("You drop the ")}${itemMild(item.name)}.`);
+  //     }
+  //     else if (atLongLat(item) && notInInventory(item)){
+  //       createPara(`${warningMild("You are not carrying the ")}${itemMild(item.alias.toLowerCase())}.`);
+  //     }
+  //     else if (notInInventory(item)){
+  //       createPara(`${warningMild("You are not carrying a ")}${itemMild(item.alias.toLowerCase())}.`);
+  //     }
+  //   }
+  //   else if (n<(objectArray.length-1)){
+  //     n++;
+  //     console.log("Looping drop, n="+n+", object alias will be "+item.alias);
+  //     dropLoop();
+  //   }
+  //   else if (n==(objectArray.length-1)){
+  //     console.log("Not in inventory - "+ parsedNoun);
+  //     createPara("You are not carrying a "+item.alias.toLowerCase());
+  //   }
+  // }
+  // dropLoop();
 }
 
 //Use Handler
 
-function useHandler(parsedVerb, parsedNoun, parsedProp){
+function useHandler(parsedVerb, parsedNoun, parsedProp, parsedDesc){
   console.log("Use handler active.")
   var n = 0;
   function useLoop(){
@@ -298,7 +435,7 @@ var regexGnome = /.*(GNOME).*/;
 var parsedNoun = null;
 
 function testForNoun(input){
-  parsedNoun=null;
+
   //Clear parsedNoun variable
   parsedNoun=null;
   //Initiate count of the nouns
@@ -349,7 +486,7 @@ var regexDoor = /.*(DOOR).*/;
 var parsedProp = null;
 
 function testForProp(input){
-  parsedProp=null;
+
   //Clear parsedProp variable
   parsedProp=null;
   //Initiate count of the prop
@@ -381,6 +518,67 @@ function testForProp(input){
 }
 
 // ----- End Prop Parser ----- //
+
+// ----- TEST FOR DESC  ----- //
+
+// Initiate Desc VARIABLES
+
+var regexRed = /.*(RED).*/;
+var regexBlue = /.*(BLUE).*/;
+var regexPurple = /.*(PURPLE).*/;
+var regexSmall = /.*(SMALL).*/;
+var parsedDesc = null;
+
+function testForDesc(input){
+
+  //Clear parsedDesc variable
+  parsedDesc=null;
+  //Initiate count of the desc
+  var descCount=0;
+  // ----- TEST FOR DESC ----- //
+
+  //Test for Red Desc
+  if (regexRed.test(input)===true){
+    console.log("Description found for" + input);
+    parsedDesc="RED";
+    descCount++;
+  }
+  if (regexBlue.test(input)===true){
+    console.log("Description found for" + input);
+    parsedDesc="BLUE";
+    descCount++;
+  }
+  if (regexPurple.test(input)===true){
+    console.log("Description found for" + input);
+    parsedDesc="Purple";
+    descCount++;
+  }
+  if (regexSmall.test(input)===true){
+    console.log("Description found for" + input);
+    parsedDesc="SMALL";
+    descCount++;
+  }
+
+  // ----- Do things based on desc results -----//
+
+  //Return the parsedProp if only one desc has been counted.
+  if (descCount===1){
+    return parsedDesc;
+  }
+  //Prompt the user if multiple descs have been encountered.
+  else if (descCount>1){
+    parsedDesc=null;
+    createPara("That's a lot of adjectives.")
+  }
+  //Console log if no desc is found
+  else if (descCount===0){
+    console.log("No description found.")
+  }
+}
+
+
+// ----- End Desc Parser ----- //
+
 // ----- COMMAND HANDLER ----- //
 
 function submitForm(event){
@@ -392,6 +590,7 @@ function submitForm(event){
   testForVerb(command);
   testForNoun(command);
   testForProp(command);
+  testForDesc(command);
 
   console.log("Parsed verb passed to submitForm with value of " + parsedVerb);
   if (parsedVerb==null){
@@ -409,7 +608,7 @@ function submitForm(event){
         createPara(`${warningMild("I'm not sure what to pick up")}`);
       }
       else {
-        pickUpHandler(parsedNoun);
+        pickUpHandler(parsedNoun,parsedDesc);
       }
     break;
     case "DROP":
@@ -417,7 +616,7 @@ function submitForm(event){
         createPara(`${warningMild("I'm not sure what you want to drop.")}`);
       }
       else {
-        dropHandler(parsedNoun);
+        dropHandler(parsedNoun,parsedDesc);
       }
     break;
     //TODO: Add other verbs here, with parsedVerb passed in, to be handled by objects
@@ -430,7 +629,7 @@ function submitForm(event){
         //Above, add dynamic to lower variable for the verb
       }
       else {
-        useHandler(parsedVerb, parsedNoun, parsedProp);
+        useHandler(parsedVerb, parsedNoun, parsedProp, parsedDesc);
     }
   }
 
